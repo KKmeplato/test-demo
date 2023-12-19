@@ -57,7 +57,7 @@ echo "EXPECTED version is ${EXPECTED_VERSION}"
 # Check if bumpLevel and input are specified
 if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
     # For non-semver bumps, compare with the expected version
-    if [ "$BUMP_LEVEL" != "semversion" ]; then
+    if [ "$BUMP_LEVEL" != "semver" ]; then
         if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
             echo "Creating tag for specified version ($INPUT_VERSION)..."
