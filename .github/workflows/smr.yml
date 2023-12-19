@@ -62,5 +62,5 @@ jobs:
               # git add package.json package-lock.json
               # git commit -m "Bump version to $INPUT_VERSION"
               # git tag -a $INPUT_VERSION -m "Release Version"
-              git push origin main --follow-tags
+              # git push origin main --follow-tags
             fi
