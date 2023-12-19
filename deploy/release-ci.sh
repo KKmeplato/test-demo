@@ -14,12 +14,12 @@ echo "Bump level is: $BUMP_LEVEL"
 echo "Current version is: $CURRENT_VERSION"
 
 # Check if bumpLevel is default and semver is empty
-if [ "$BUMP_LEVEL" == "semver" ] && [ -z "$INPUT_VERSION" ]; then
+if [ "$BUMP_LEVEL" == "semversion" ] && [ -z "$INPUT_VERSION" ]; then
     echo "Bump level is semver, but semver is empty!"
     exit 1
 fi
 
-# Check if semVer is actually > currentVersion -> Compare versions using semver library
+# Check if semVersion is actually > currentVersion -> Compare versions using semver library
 if [ -n "$INPUT_VERSION" ] && [ "$(node -e "console.log(require('semver').gt('$INPUT_VERSION', '$CURRENT_VERSION'))")" == "false" ]; then
     echo "Provided version is not greater than the current version."
     exit 1
@@ -57,7 +57,7 @@ echo "EXPECTED version is ${EXPECTED_VERSION}"
 # Check if bumpLevel and input are specified
 if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
     # For non-semver bumps, compare with the expected version
-    if [ "$BUMP_LEVEL" != "semver" ]; then
+    if [ "$BUMP_LEVEL" != "semversion" ]; then
         if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
             echo "Creating tag for specified version ($INPUT_VERSION)..."
@@ -71,7 +71,7 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
 fi
 
 # Use the specified version and bump level to input version
-if [ "$BUMP_LEVEL" == "semver" ]; then
+if [ "$BUMP_LEVEL" == "semversion" ]; then
     npm --no-git-tag-version version $INPUT_VERSION
     # Commit the changes
     git add package.json package-lock.json
