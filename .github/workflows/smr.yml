@@ -3,7 +3,7 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      semversion:
+      semver:
         description: "Version (e.g. main.0.7 | 2.2.0-rc1)"
         type: string
         required: false
