@@ -1,0 +1,128 @@
+name: TEST KK
+
+on:
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: "Version (e.g. v2.0.7 | 2.2.0-rc1)"
+        type: string
+        required: false
+      patchLevel:
+        description: "Select version increment/bump level"
+        type: choice
+        required: false
+        options:
+          - semver
+          - patch
+          - minor
+        default: semver
+
+jobs:
+  release_semver:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'   
+    steps:
+      - name: "Configure GitHub Access"
+        env:
+          ACCESS_TOKEN: "${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}"
+        run: |
+          git config --global url."https://${ACCESS_TOKEN}@github.com".insteadOf "https://github.com"
+          git config --global user.email "meplato-robot@users.noreply.github.com"
+          git config --global user.name "meplato-robot"
+
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          registry-url: "https://npm.pkg.github.com"
+
+
+      - name: "Check Input Parameters"
+        run: |
+          BUMP_LEVEL="${{ github.event.inputs.patchLevel }}"
+          INPUT_VERSION="${{ github.event.inputs.semver }}"
+          export CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
+          echo "Input version is: $INPUT_VERSION"
+          echo "Bump level is: $BUMP_LEVEL"   # "minor" or "patch", or "semver"
+          echo "Current version is: $CURRENT_VERSION"
+
+           # Check if bumpLevel and semver are specified
+            if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
+             echo "Both bumpLevel and semver input version are specified."
+
+            # Check if bumpLevel is default and semver is empty
+            if [ "$BUMP_LEVEL" == "semver" ] && [ -z "$INPUT_VERSION" ]; then
+             echo "Bump level is semver, but semver is empty!"
+             exit 1
+            fi
+
+            # Check if semVer is a valid semantic version
+            SEMVER_PATTERN="^(v?2)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$"
+            if ! echo "$INPUT_VERSION" | grep -E -q "$SEMVER_PATTERN"; then
+              echo "Invalid semantic version. Please provide a version that matches the pattern."
+              exit 1
+            fi
+ 
+            # Check if semVer is actually > currentVersion -> Compare versions using semver library
+            if [ "$(node -e "console.log(require('semver').gt('$INPUT_VERSION', '$CURRENT_VERSION'))")" == "false" ]; then
+              echo "Provided version is not greater than the current version."
+              exit 1
+            fi
+
+
+            # Extract major, minor, and patch versions from the current version
+            IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR="${VERSION_PARTS[0]}"
+            MINOR="${VERSION_PARTS[1]}"
+            PATCH="${VERSION_PARTS[2]}"
+
+            # Calculate the expected dev-specified version based on bump level
+            if [ "$BUMP_LEVEL" == "minor" ]; then
+              EXPECTED_VERSION="$MAJOR.$((MINOR + 1)).$PATCH"
+            elif [ "$BUMP_LEVEL" == "patch" ]; then
+              EXPECTED_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+            else
+              echo "Error: Unsupported bump-level ($BUMP_LEVEL) does not match specified semantic version ($INPUT_VERSION). CI fails because instructions are unclear"
+              exit 1  # Exit with an error code
+            fi
+            
+
+            echo "EXPECTED version is ${EXPECTED_VERSION}"
+
+            if [ "$INPUT_VERSION" != "$EXPECTED_VERSION" ]; then
+              echo "Error: Specified version ($INPUT_VERSION) does not match expected version ($EXPECTED_VERSION)."
+              exit 1  # Exit with an error code
+            fi
+
+            # Use the specified version and bump level to input version
+            if [ "$BUMP_LEVEL" == "semver" ]; then
+              npm --no-git-tag-version version $INPUT_VERSION
+              # Commit the changes
+              git add package.json package-lock.json
+              git commit -m "Bump version to $INPUT_VERSION"
+              git tag -a $INPUT_VERSION -m "Release Version"
+              git push origin main --follow-tags
+            fi
+
+            # Check if bumpLevel is minor/patch AND semver is empty, then use it for bumping
+            if ([ "$BUMP_LEVEL" == "minor" ] || [ "$BUMP_LEVEL" == "patch" ]) && [ -z "$INPUT_VERSION" ]; then
+              echo "Using default bump level for versioning."
+
+              # Perform version bumping using npm
+              if [ "$BUMP_LEVEL" == "minor" ]; then
+                echo "Bumping version with 'minor' level."
+                npm --no-git-tag-version version minor
+              elif [ "$BUMP_LEVEL" == "patch" ]; then
+                echo "Bumping version with 'patch' level."
+                npm --no-git-tag-version version patch
+              fi
+
+              git add package.json package-lock.json
+              git commit -m "Bump version to $(node -p "require('./package.json').version")"
+              git tag -a $(node -p "require('./package.json').version") -m "Release Version"
+              git push origin main --follow-tags
+            fi

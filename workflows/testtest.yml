@@ -1,0 +1,103 @@
+name: Manual Workflow TEst
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: "Semantic version (e.g. v2.0.7 | 2.2.0-rc1)"
+        type: string
+        required: true
+      choice:
+        description: "Select version increment/bump level"
+        type: choice
+        required: false
+        options:
+          - patch
+          - minor
+  
+jobs:
+  release_semver:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: "Check Semantic Version"
+        run: |
+          SEMVER_PATTERN="^(v?2)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$"
+          INPUT_VERSION="${{ github.event.inputs.semver }}"
+          
+          if echo "${INPUT_VERSION}" | grep -E -q "$SEMVER_PATTERN"; then
+            echo "Valid semantic version: ${INPUT_VERSION}"
+          else
+            echo "Invalid semantic version. Please provide a version that matches the pattern."
+            exit 1
+          fi
+
+      - name: "Configure GitHub Access"
+        env:
+          ACCESS_TOKEN: "${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}"
+        run: |
+          git config --global url."https://${ACCESS_TOKEN}@github.com".insteadOf "https://github.com"
+          git config --global user.email "meplato-robot@users.noreply.github.com"
+          git config --global user.name "meplato-robot"
+
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          registry-url: "https://npm.pkg.github.com"
+
+      - name: "Update Package version"
+        run: |
+          # Set the new version in package.json without creating a git tag
+          npm --no-git-tag-version version ${{ github.event.inputs.semver }}
+          
+          # Get the updated version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+
+          
+          # Add the updated files to the staging area
+          git add package.json package-lock.json
+          
+          # Commit the changes with a message including the increment level (To check what choice user opted for)
+          git commit -m "Bump version to ${VERSION} [${{ github.event.inputs.choice }}]"
+
+          # Create a Git tag for the new version
+          git tag -a ${VERSION} -m "Release ${VERSION}"
+          git push origin main 
+          git push origin --tag  
+          
+          # Push the changes and the new tag to the repository 
+          #(Realised need to debug this as -follow-tags were not pushing tags in remote repo)
+          # git push origin main --follow-tags
+
+         
+      - name: "Publish Package"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+         # The GITHUB_REF environment variable is used to determine the reference (branch or tag) that triggered the workflow. Here branch is being used.
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            # Extract version from package.json
+            PACKAGE_VERSION=$(jq -r '.version' <package.json)
+            
+            # Specify the version you want to compare with
+            INPUT_VERSION="${{ github.event.inputs.semver }}"  # Replace with the desired version
+            INPUT_VERSION="${INPUT_VERSION#v}"  #remove v prefix If added during manual version input
+            
+            if [ "${PACKAGE_VERSION}" = "${INPUT_VERSION}" ]; then
+              echo "Version match. All good."
+            else
+              echo "Versions do not match."
+              echo "Package.json version: ${PACKAGE_VERSION}"
+              echo "Input version: ${INPUT_VERSION}"
+              exit 1
+            fi
+          else
+            echo "Not a push to the main branch. Skipping version check."
+          fi

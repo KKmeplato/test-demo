@@ -1,0 +1,36 @@
+name: TEST PKG
+
+on:
+  workflow_dispatch
+
+jobs:
+  validate_semver:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+          registry-url: "https://npm.pkg.github.com"
+          
+      - name: "Configure GitHub Access"
+        env:
+          ACCESS_TOKEN: "${{ secrets.GIT_PERSONAL_ACCESS_TOKEN }}"
+        run: |
+          git config --global url."https://${ACCESS_TOKEN}@github.com".insteadOf "https://github.com"
+          git config --global user.email "meplato-robot@users.noreply.github.com"
+          git config --global user.name "meplato-robot"
+      # - run: npm ci
+      - run: npm install
+      - run: npm run build
+      - run: cp package.json ./dist
+      - run: cp LICENSE ./dist
+      - run: cp README.md ./dist
+      - run: cd ./dist
+      - run: HUSKY=0 npm publish ./dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

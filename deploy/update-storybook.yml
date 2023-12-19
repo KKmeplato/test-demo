@@ -1,0 +1,23 @@
+# Sync config files/folders from build server to lb1 and lb2.
+---
+- name: Deploy Storybook
+  hosts: [lb1.meplato.com, lb2.meplato.com]
+  become: true
+
+  tasks:
+    - name: Set GitHub environment variables
+      set_fact:
+        github_workspace: "{{ lookup('env', 'GITHUB_WORKSPACE') }}"
+
+    - name: Synchronize build folder to servers
+      ansible.builtin.synchronize:
+        src: "{{ github_workspace }}/storybook-static"
+        dest: "/srv/www/ui-kit-storybook"
+        recursive: yes
+
+    - name: Set ownership and permissions on the destination folder
+      ansible.builtin.file:
+        path: "/srv/www/ui-kit-storybook"
+        owner: nginx
+        group: nginx
+        mode: "0770"
