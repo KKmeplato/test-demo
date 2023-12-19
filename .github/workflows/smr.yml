@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       semver:
-        description: "Version (e.g. main.0.7 | 2.2.0-rc1)"
+        description: "Version (e.g. v2.0.7 | 2.2.0-rc1)"
         type: string
         required: false
       patchLevel:
@@ -48,6 +48,4 @@ jobs:
         env:
           BUMP_LEVEL: "${{ github.event.inputs.patchLevel }}"
           INPUT_VERSION: "${{ github.event.inputs.semver }}"
-        run: |
-          chmod +x deploy/release-ci.sh
-          deploy/release-ci.sh
+        run: deploy/release-ci.sh
