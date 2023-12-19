@@ -14,7 +14,7 @@ echo "Bump level is: $BUMP_LEVEL"
 echo "Current version is: $CURRENT_VERSION"
 
 # Check if bumpLevel is default and semver is empty
-if [ "$BUMP_LEVEL" == "semversion" ] && [ -z "$INPUT_VERSION" ]; then
+if [ "$BUMP_LEVEL" == "semver" ] && [ -z "$INPUT_VERSION" ]; then
     echo "Bump level is semver, but semver is empty!"
     exit 1
 fi
@@ -73,7 +73,7 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
 fi
 
 # Use the specified version and bump level to input version
-if [ "$BUMP_LEVEL" == "semversion" ]; then
+if [ "$BUMP_LEVEL" == "semver" ]; then
     npm --no-git-tag-version version $INPUT_VERSION
     # Commit the changes
     git add package.json package-lock.json
