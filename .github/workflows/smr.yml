@@ -48,4 +48,6 @@ jobs:
         env:
           BUMP_LEVEL: "${{ github.event.inputs.patchLevel }}"
           INPUT_VERSION: "${{ github.event.inputs.semver }}"
-        run: deploy/release-ci.sh
+        run: |
+          chmod +x deploy/release-ci.sh
+          deploy/release-ci.sh
