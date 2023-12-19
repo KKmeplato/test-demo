@@ -46,10 +46,10 @@ PATCH="${VERSION_PARTS[2]}"
 # Calculate the expected version based on bump level
 if [ "$BUMP_LEVEL" == "minor" ] && [ -n "$INPUT_VERSION" ]; then
     # EXPECTED_VERSION="$MAJOR.$((MINOR + 1)).$PATCH"
-    EXPECTED_VERSION = node -e "console.log(require('semver').inc('$CURRENT_VERSION', BUMP_LEVEL)"
+    EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
 elif [ "$BUMP_LEVEL" == "patch" ] && [ -n "$INPUT_VERSION" ]; then
     # EXPECTED_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-    EXPECTED_VERSION = node -e "console.log(require('semver').inc('$CURRENT_VERSION', BUMP_LEVEL)"
+    EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
 fi
 
 echo "EXPECTED version is ${EXPECTED_VERSION}"
