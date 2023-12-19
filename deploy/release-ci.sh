@@ -81,7 +81,10 @@ if [ "$BUMP_LEVEL" == "semver" ]; then
     # git commit -m "Bump version to new semantic version"
     # git tag -a ${INPUT_VERSION} -m "Release Version"
     # git push origin main --follow-tags
-    npm version $INPUT_VERSION
+    git status
+    npm version $INPUT_VERSION -m "test"
+    git push origin main --follow-tags
+    
 fi
                
 # Check if bumpLevel is minor/patch AND semver is empty, then use it for bumping
