@@ -43,35 +43,36 @@ fi
 # MINOR="${VERSION_PARTS[1]}"
 # PATCH="${VERSION_PARTS[2]}"
 
-# # Calculate the expected version based on bump level
-# if [ "$BUMP_LEVEL" == "minor" ] && [ -n "$INPUT_VERSION" ]; then
-#     # EXPECTED_VERSION="$MAJOR.$((MINOR + 1)).$PATCH"
-#     EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
-# elif [ "$BUMP_LEVEL" == "patch" ] && [ -n "$INPUT_VERSION" ]; then
-#     # EXPECTED_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-#     EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
-# fi
+# Calculate the expected version based on bump level
+if [ "$BUMP_LEVEL" == "minor" ] && [ -n "$INPUT_VERSION" ]; then
+    EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
+elif [ "$BUMP_LEVEL" == "patch" ] && [ -n "$INPUT_VERSION" ]; then
+    EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
+fi
 
-# echo "EXPECTED version is ${EXPECTED_VERSION}"
+echo "EXPECTED version is ${EXPECTED_VERSION}"
 
-# # ######## Update and create tag of semantic version ########
+# ######## Update and create tag of semantic version ########
 
-# # Check if bumpLevel and input are specified
-# if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
-#     # For non-semver bumps, compare with the expected version
-#     if [ "$BUMP_LEVEL" != "semver" ]; then
-#         if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
-#             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
-#             echo "Creating tag for specified version ($INPUT_VERSION)..."
-#             npm version $EXPECTED_VERSION
-#             # git tag -a "$INPUT_VERSION" -m "Release Version"
-#             # git push origin main --follow-tags
-#         else
-#             echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
-#             exit 1  # Exit with an error code
-#         fi
-#     fi
-# fi
+# Check if bumpLevel and input are specified
+if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
+    # For non-semver bumps, compare with the expected version
+    if [ "$BUMP_LEVEL" != "semver" ]; then
+        if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
+            # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
+            echo "Creating tag for specified version ($INPUT_VERSION)..."
+            npm version $EXPECTED_VERSION
+            # git add package.json package-lock.json
+            # git commit -m "Bump version to ${COMMIT_TAG}"
+            # git tag -a "$INPUT_VERSION" -m "Release Version"
+            # git tag -a "$INPUT_VERSION" -m "Release Version"
+            git push origin main --follow-tags
+        else
+            echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
+            exit 1  # Exit with an error code
+        fi
+    fi
+fi
 
 # Use the specified version and bump level to input version
 if [ "$BUMP_LEVEL" == "semver" ]; then
