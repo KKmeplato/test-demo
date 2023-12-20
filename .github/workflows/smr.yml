@@ -143,16 +143,20 @@ jobs:
                   # npm --no-git-tag-version version minor
               elif [ "${BUMP_LEVEL}" == "patch" ]; then
                   echo "Bumping version with 'patch' level."
+                  EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
+                  # npm version $EXPECTED_VERSION
+                  echo "================ $EXPECTED_VERSION =========================="
                   node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))"
                   # npm --no-git-tag-version version patch
               fi
           
-              COMMIT_TAG="$(node -p "require('./package.json').version")"
-              echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
-              
-              git add package.json package-lock.json
-              git commit -m "Bump version to ${COMMIT_TAG}"
-              git tag -a "${COMMIT_TAG}" -m "Release Version"
-              git push origin main --follow-tags
+              # COMMIT_TAG="$(node -p "require('./package.json').version")"
+              # echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
+                npm version $EXPECTED_VERSION
+                git push origin main --follow-tags
+              # git add package.json package-lock.json
+              # git commit -m "Bump version to ${COMMIT_TAG}"
+              # git tag -a "${COMMIT_TAG}" -m "Release Version"
+              # git push origin main --follow-tags
           fi
           
