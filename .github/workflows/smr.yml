@@ -83,18 +83,16 @@ jobs:
               echo "Both bumpLevel and semver input version are specified."
           fi
           
-          # # Extract major, minor, and patch versions from the current version
-          # IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-          # MAJOR="${VERSION_PARTS[0]}"
-          # MINOR="${VERSION_PARTS[1]}"
-          # PATCH="${VERSION_PARTS[2]}"
+          # Extract major, minor, and patch versions from the current version
+          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
           
           # # Calculate the expected version based on bump level
           if [ "$BUMP_LEVEL" == "minor" ] && [ -n "$INPUT_VERSION" ]; then
-              # EXPECTED_VERSION="$MAJOR.$((MINOR + 1)).$PATCH"
               EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
           elif [ "$BUMP_LEVEL" == "patch" ] && [ -n "$INPUT_VERSION" ]; then
-              # EXPECTED_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
               EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
           fi
           
@@ -110,6 +108,8 @@ jobs:
                       # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
                       echo "Creating tag for specified version ($INPUT_VERSION)..."
                       npm version $EXPECTED_VERSION
+                      # git add package.json package-lock.json
+                      # git commit -m "Bump version to ${COMMIT_TAG}"
                       # git tag -a "$INPUT_VERSION" -m "Release Version"
                       git push origin main --follow-tags
                   else
@@ -139,24 +139,17 @@ jobs:
               # Perform version bumping using npm
               if [ "${BUMP_LEVEL}" == "minor" ]; then
                   echo "Bumping version with 'minor' level."
-                  node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))"
-                  # npm --no-git-tag-version version minor
+                  npm --no-git-tag-version version minor
               elif [ "${BUMP_LEVEL}" == "patch" ]; then
                   echo "Bumping version with 'patch' level."
-                  EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
-                  # npm version $EXPECTED_VERSION
-                  echo "================ $EXPECTED_VERSION =========================="
-                  node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))"
-                  # npm --no-git-tag-version version patch
+                  npm --no-git-tag-version version patch
               fi
           
-              # COMMIT_TAG="$(node -p "require('./package.json').version")"
-              # echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
-                npm version $EXPECTED_VERSION
-                git push origin main --follow-tags
-              # git add package.json package-lock.json
-              # git commit -m "Bump version to ${COMMIT_TAG}"
-              # git tag -a "${COMMIT_TAG}" -m "Release Version"
-              # git push origin main --follow-tags
+              COMMIT_TAG="$(node -p "require('./package.json').version")"
+              echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
+              git add package.json package-lock.json
+              git commit -m "Bump version to ${COMMIT_TAG}"
+              git tag -a "${COMMIT_TAG}" -m "Release Version"
+              git push origin main --follow-tags
           fi
           
