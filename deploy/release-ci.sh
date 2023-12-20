@@ -61,11 +61,10 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
         if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
             echo "Creating tag for specified version ($INPUT_VERSION)..."
-            npm version $EXPECTED_VERSION
-            # git add package.json package-lock.json
-            # git commit -m "Bump version to ${COMMIT_TAG}"
-            # git tag -a "$INPUT_VERSION" -m "Release Version"
-            # git tag -a "$INPUT_VERSION" -m "Release Version"
+            npm --no-git-tag-version version $EXPECTED_VERSION
+            git add package.json package-lock.json
+            git commit -m "Bump version to ${COMMIT_TAG}"
+            git tag -a "$INPUT_VERSION" -m "Release Version"
             git push origin main --follow-tags
         else
             echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
