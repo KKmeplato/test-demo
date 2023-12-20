@@ -96,7 +96,7 @@ jobs:
               EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
           fi
           
-          # echo "EXPECTED version is ${EXPECTED_VERSION}"
+          echo "EXPECTED version is ${EXPECTED_VERSION}"
           
           # # ######## Update and create tag of semantic version ########
           
