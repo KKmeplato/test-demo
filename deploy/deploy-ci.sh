@@ -58,6 +58,7 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
             echo "Creating tag for specified version ($INPUT_VERSION)..."
             npm --no-git-tag-version version $EXPECTED_VERSION
             git add package.json package-lock.json
+            git commit -m "Bump version to $INPUT_VERSION"
             git tag -a "$INPUT_VERSION" -m "Release Version"
             git push origin main --follow-tags
         else
