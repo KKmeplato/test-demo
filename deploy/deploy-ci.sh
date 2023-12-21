@@ -5,6 +5,14 @@
 # --------------------------------------------------------
 # FROM CI ENV = { BUMP_LEVEL, INPUT_VERSION}
 
+# Function to perform Git operations
+perform_git_operations() {
+    git add package.json package-lock.json
+    git commit -m "Bump version to $1"
+    git tag -a "$1" -m "Release Version"
+    git push origin main --follow-tags
+}
+
 export CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "CURRENT_VERSION=${CURRENT_VERSION}" >>$GITHUB_ENV
 echo "Input version is: $INPUT_VERSION"
@@ -57,10 +65,7 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
             echo "Creating tag for specified version ($INPUT_VERSION)..."
             npm --no-git-tag-version version $EXPECTED_VERSION
-            git add package.json package-lock.json
-            git commit -m "Bump version to $INPUT_VERSION"
-            git tag -a "$INPUT_VERSION" -m "Release Version"
-            git push origin main --follow-tags
+            perform_git_operations "$INPUT_VERSION"
         else
             echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
             exit 1  # Exit with an error code
@@ -72,10 +77,7 @@ fi
 if [ "$BUMP_LEVEL" == "semver" ]; then
     npm --no-git-tag-version version $INPUT_VERSION
     # Commit the changes
-    git add package.json package-lock.json
-    git commit -m "Bump version to new semantic version"
-    git tag -a ${INPUT_VERSION} -m "Release Version"
-    git push origin main --follow-tags
+    perform_git_operations "$INPUT_VERSION"
 fi
                
 # Check if bumpLevel is minor/patch AND semver is empty, then use it for bumping
@@ -93,9 +95,5 @@ if [[ "${BUMP_LEVEL}" == "minor" || "${BUMP_LEVEL}" == "patch" ]] && [ -z "$INPU
 
     COMMIT_TAG="$(node -p "require('./package.json').version")"
     echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
-    
-    git add package.json package-lock.json
-    git commit -m "Bump version to ${COMMIT_TAG}"
-    git tag -a "${COMMIT_TAG}" -m "Release Version"
-    git push origin main --follow-tags
+    perform_git_operations "$COMMIT_TAG"
 fi
