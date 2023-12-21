@@ -61,7 +61,7 @@ jobs:
           cp LICENSE $DIST_PATH
           cp README.md $DIST_PATH
           cd $DIST_PATH
-          npm publish $DIST_PATH
+         
       - name: "Release Package"
       # Alternative github action for releasing package 
       # For straightforward release process and want a simple setup, softprops/action-gh-release is sufficient.
