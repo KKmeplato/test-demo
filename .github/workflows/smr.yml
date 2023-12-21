@@ -63,10 +63,7 @@ jobs:
           cp LICENSE $DIST_PATH
           cp README.md $DIST_PATH
           cd $DIST_PATH
-          # TO create a ZIP archive named package.zip from the contents of the current directory 
-          zip -r package.zip ./* 
-          # This command will zip all the files/folder in current directory
-   
+          npm publish $DIST_PATH
       - name: "Release Package"
       # Alternative github action for releasing package 
       # For straightforward release process and want a simple setup, softprops/action-gh-release is sufficient.
