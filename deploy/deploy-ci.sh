@@ -9,7 +9,7 @@
 perform_git_operations() {
     git add package.json package-lock.json
     git commit -m "Bump version to $1"
-    git tag -a "$1" -m "Release Version"
+    git tag -a "v$1" -m "Release Version v$1"
     git push origin main --follow-tags
 }
 
