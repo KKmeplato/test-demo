@@ -60,14 +60,13 @@ jobs:
           cp LICENSE $DIST_PATH
           cp README.md $DIST_PATH
           cd $DIST_PATH
-          
-      - name: Debug
-        run: echo "COMMIT_TAG is $COMMIT_TAG"
        
       - name: "Create GitHub Release"
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
+          # note you'll typically need to create a personal access token
+          # with permissions to create releases in the other repo
           token: ${{ secrets.GITHUB_TOKEN }}
-          # Specifying the tag name for the release based on the commit tag.
-          tag_name: ${{ env.COMMIT_TAG }}
           generate_release_notes: true
