@@ -13,6 +13,14 @@ perform_git_operations() {
     git push origin main --follow-tags
 }
 
+# Function to bump version and perform git operations
+bump_and_commit() {
+    npm --no-git-tag-version version $1
+    COMMIT_TAG="$(node -p "require('./package.json').version")"
+    perform_git_operations "$COMMIT_TAG"
+    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
+}
+
 export CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "CURRENT_VERSION=${CURRENT_VERSION}" >>$GITHUB_ENV
 echo "Input version is: $INPUT_VERSION"
@@ -45,7 +53,6 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
     echo "Both bumpLevel and semver input version are specified."
 fi
 
-
 # Calculate the expected version based on bump level
 if [ "$BUMP_LEVEL" == "minor" ] && [ -n "$INPUT_VERSION" ]; then
     EXPECTED_VERSION=$(node -e "console.log(require('semver').inc('$CURRENT_VERSION', '$BUMP_LEVEL'))")
@@ -55,36 +62,25 @@ fi
 
 echo "EXPECTED version is ${EXPECTED_VERSION}"
 
-# ######## Update and create tag of semantic version ########
-
 # Check if bumpLevel and input are specified
 if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
-    # For non-semver bumps, compare with the expected version
     if [ "$BUMP_LEVEL" != "semver" ]; then
         if [ "$INPUT_VERSION" == "$EXPECTED_VERSION" ]; then
             # Check if bumplevel is minor/patch and Input version matches with expected output,Create a tag and push to branch.
             echo "Creating tag for specified version ($INPUT_VERSION)..."
-            npm --no-git-tag-version version $EXPECTED_VERSION
-            COMMIT_TAG="$(node -p "require('./package.json').version")"
-            perform_git_operations "$COMMIT_TAG"
-            echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
+            bump_and_commit "$EXPECTED_VERSION"
         else
             echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
-            exit 1  # Exit with an error code
+            exit 1
         fi
     fi
 fi
 
 # Use the specified version and bump level to input version
 if [ "$BUMP_LEVEL" == "semver" ]; then
-    npm --no-git-tag-version version $INPUT_VERSION
-    COMMIT_TAG="$(node -p "require('./package.json').version")"
-    # Commit the changes
-    perform_git_operations "$COMMIT_TAG"
-    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
-    # perform_git_operations "$INPUT_VERSION"
+    bump_and_commit "$INPUT_VERSION"
 fi
-               
+
 # Check if bumpLevel is minor/patch AND semver is empty, then use it for bumping
 if [[ "${BUMP_LEVEL}" == "minor" || "${BUMP_LEVEL}" == "patch" ]] && [ -z "$INPUT_VERSION" ]; then
     echo "Using default bump level for versioning."
@@ -98,7 +94,5 @@ if [[ "${BUMP_LEVEL}" == "minor" || "${BUMP_LEVEL}" == "patch" ]] && [ -z "$INPU
         npm --no-git-tag-version version patch
     fi
 
-    COMMIT_TAG="$(node -p "require('./package.json').version")"
-    perform_git_operations "$COMMIT_TAG"
-    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
+    bump_and_commit "$EXPECTED_VERSION"
 fi
