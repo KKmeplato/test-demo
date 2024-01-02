@@ -71,5 +71,5 @@ jobs:
           files: ${{ github.workspace }}/dist/package.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
-          tag: ${{ env.COMMIT_TAG }}
+          # tag: ${{ env.COMMIT_TAG }}
           
