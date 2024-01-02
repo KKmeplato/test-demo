@@ -64,6 +64,6 @@ jobs:
       - name: "Create GitHub Release"
         uses: ncipollo/release-action@v1
         with:
-          tag: test
+          tag: test2
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
