@@ -63,13 +63,13 @@ jobs:
           cd $DIST_PATH
          
       - name: "Release Package"
-      # Alternative github action for releasing package 
-      # For straightforward release process and want a simple setup, softprops/action-gh-release is sufficient.
-      # If need advanced release features, such as version bumping, changelog generation, and comprehensive release notes handling, ncipollo/release-action is good.
+        # Alternative github action for releasing package
+        # For straightforward release process and want a simple setup, softprops/action-gh-release is sufficient.
+        # If need advanced release features, such as version bumping, changelog generation, and comprehensive release notes handling, ncipollo/release-action is good.
         uses: ncipollo/release-action@v1
         with:
-          files: ${{ github.workspace }}/dist/package.zip
           token: ${{ secrets.GITHUB_TOKEN }}
-          generateReleaseNotes: true
+          # Specifying the tag name for the release based on the commit tag.
           tag: ${{ env.COMMIT_TAG }}
+          generateReleaseNotes: true
           
