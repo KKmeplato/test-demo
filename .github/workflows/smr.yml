@@ -62,8 +62,8 @@ jobs:
           cd $DIST_PATH
        
       - name: "Create GitHub Release"
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: test
+          tag: test
           token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true
+          generateReleaseNotes: true
