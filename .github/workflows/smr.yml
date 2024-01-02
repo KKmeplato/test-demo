@@ -64,13 +64,10 @@ jobs:
       - name: Debug
         run: echo "COMMIT_TAG is $COMMIT_TAG"
        
-      - name: "Release Package"
-        # Alternative github action for releasing package
-        # For straightforward release process and want a simple setup, softprops/action-gh-release is sufficient.
-        # If need advanced release features, such as version bumping, changelog generation, and comprehensive release notes handling, ncipollo/release-action is good.
-        uses: ncipollo/release-action@v1
+      - name: "Create GitHub Release"
+        uses: softprops/action-gh-release@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # Specifying the tag name for the release based on the commit tag.
-          tag: ${{ env.COMMIT_TAG }}
-          generateReleaseNotes: true
+          tag_name: ${{ env.COMMIT_TAG }}
+          generate_release_notes: true
