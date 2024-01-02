@@ -94,6 +94,6 @@ if [[ "${BUMP_LEVEL}" == "minor" || "${BUMP_LEVEL}" == "patch" ]] && [ -z "$INPU
     fi
 
     COMMIT_TAG="$(node -p "require('./package.json').version")"
-    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV
     perform_git_operations "$COMMIT_TAG"
+    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
 fi
