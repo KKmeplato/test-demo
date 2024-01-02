@@ -47,7 +47,7 @@ jobs:
         env:
           BUMP_LEVEL: "${{ github.event.inputs.patchLevel }}"
           INPUT_VERSION: "${{ github.event.inputs.semver }}"
-        run: deploy/release-ci.sh
+        run: deploy/deploy-ci.sh
 
       - name: "Publish Package"
         env:
@@ -60,10 +60,7 @@ jobs:
           cp LICENSE $DIST_PATH
           cp README.md $DIST_PATH
           cd $DIST_PATH
-          HUSKY=0 npm publish $DIST_PATH
-          # TO create a ZIP archive named package.zip from the contents of the current directory 
-          zip -r package.zip ./* 
-          # This command will zip all the files/folder in current directory
+
 
       - name: "Release Package"
         # Alternative github action for releasing package
@@ -71,7 +68,7 @@ jobs:
         # If need advanced release features, such as version bumping, changelog generation, and comprehensive release notes handling, ncipollo/release-action is good.
         uses: ncipollo/release-action@v1
         with:
-          files: ${{ github.workspace }}/dist/package.zip
+          # files: ${{ github.workspace }}/dist/package.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           # Specifying the tag name for the release based on the commit tag.
           tag: ${{ env.COMMIT_TAG }}
