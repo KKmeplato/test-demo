@@ -15,7 +15,6 @@ perform_git_operations() {
 
 export CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "CURRENT_VERSION=${CURRENT_VERSION}" >>$GITHUB_ENV
-echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
 echo "Input version is: $INPUT_VERSION"
 
 # ci dropdown allows: "minor", "patch" or "semver"
@@ -68,6 +67,7 @@ if [ -n "$BUMP_LEVEL" ] && [ -n "$INPUT_VERSION" ]; then
             npm --no-git-tag-version version $EXPECTED_VERSION
             COMMIT_TAG="$(node -p "require('./package.json').version")"
             perform_git_operations "$COMMIT_TAG"
+            echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
         else
             echo "Error: Specified bump-level ($BUMP_LEVEL) does not match expected version ($EXPECTED_VERSION). CI fails because instructions are unclear"
             exit 1  # Exit with an error code
@@ -81,6 +81,7 @@ if [ "$BUMP_LEVEL" == "semver" ]; then
     COMMIT_TAG="$(node -p "require('./package.json').version")"
     # Commit the changes
     perform_git_operations "$COMMIT_TAG"
+    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
     # perform_git_operations "$INPUT_VERSION"
 fi
                
@@ -99,4 +100,5 @@ if [[ "${BUMP_LEVEL}" == "minor" || "${BUMP_LEVEL}" == "patch" ]] && [ -z "$INPU
 
     COMMIT_TAG="$(node -p "require('./package.json').version")"
     perform_git_operations "$COMMIT_TAG"
+    echo "COMMIT_TAG=${COMMIT_TAG}" >>$GITHUB_ENV   
 fi
